@@ -39,22 +39,14 @@ async function run() {
             res.send({ token });
         });
 
-        // all products:
-        // app.get('/products', async (req, res) => {
-        //     const query = req.query;
-        //     const searchQuery = {
-        //         $or: [
-        //             { name: { $regex: new RegExp(query, "i") } },
-        //             { category: { $regex: new RegExp(query, "i") } },
-        //             { brand: { $regex: new RegExp(query, "i") } },
-        //         ]
-        //     }
+        // all products for product:
+        app.get('/products', async (req, res) => {
+            const result = await productCollection.find().toArray();
+            res.send(result);
 
-        //     const result = await productCollection.find(searchQuery).toArray();
-        //     res.send(result);
+        });
 
-        // });
-
+        // Search Product on home category:
         app.get('/products/:text', async (req, res) => {
             const searchText = req.params.text;
             const result = await productCollection.find({
