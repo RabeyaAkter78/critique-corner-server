@@ -30,16 +30,17 @@ async function run() {
 
     try {
         const productCollection = client.db("critiqueDb").collection("products");
-        const userCollection = client.db('critiqueDb').collection('user');
+        const reviewCollection = client.db("critiqueDb").collection("reviews");
+
         // create JWT Token:
         app.post('/jwt', (req, res) => {
             const user = req.body;
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
-            console.log(token);
+            // console.log(token);
             res.send({ token });
         });
 
-        // all products for product:
+        // all products for product page:
         app.get('/products', async (req, res) => {
             const result = await productCollection.find().toArray();
             res.send(result);
@@ -57,7 +58,41 @@ async function run() {
             }).toArray();
             res.send(result);
 
+        });
+        // Filter and sort product on product page:
+        
+        app.get("/products", async (req, res) => {
+            const price = req.query.price;
+            const isTrue = req.query.isSort;
+            console.log(price, isTrue)
+            if (isTrue === "true") {
+                const result = await productCollection.find({ price: price }).sort({ createdAt: -1 }).toArray();
+                res.send(result);
+                return;
+            }
+            const result = await productCollection.find({ price: price }).sort({ createdAt: 1 }).toArray();
+            res.send(result);
         })
+        
+        // add review :
+        app.post("/addReview", async (req, res) => {
+            const review = req.body;
+            review.createdAt = new Date();
+            if (!review) {
+                return res.status(404).send({ message: "invalid request" })
+            }
+            const result = await reviewCollection.insertOne(review);
+            console.log(review);
+            res.send(result)
+        });
+        // Get All Review:
+        app.get('/reviews', async (req, res) => {
+            const result = await reviewCollection.find().toArray();
+            res.send(result);
+
+        });
+
+
 
 
         // Send a ping to confirm a successful connection
@@ -66,7 +101,7 @@ async function run() {
     } catch (error) {
         console.error("Error:", error);
     }
-}
+};
 
 // Run the application:
 run().catch(console.error);
